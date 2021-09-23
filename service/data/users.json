@@ -1,14 +1,14 @@
 [
     {
         "login" : "dani", 
-        "password" : "1234",
-        "name" : "Dani",
+        "password" : "dani2021",
+        "name" : "dani",
         "rol" : "user"
     },
     {
-        "login" : "juan", 
-        "password" : "1234",
-        "name" : "Juan",
+        "login" : "pepe", 
+        "password" : "pepe2021",
+        "name" : "pepe",
         "rol" : "admin"
     }
 ]

@@ -1,5 +1,14 @@
 import "./header.css";
+import '@material/react-button/dist/button.css';
+import "@material/react-chips/dist/chips.css";
 import { connect } from 'react-redux';
+import { logout } from "../../modules/login/actions";
+import {
+    Link
+  } from "react-router-dom";
+import React from 'react';
+import Button from '@material/react-button';
+import {ChipSet, Chip} from '@material/react-chips';
 
 const Header = (props) => {
     const {
@@ -9,15 +18,28 @@ const Header = (props) => {
     return (
         <div className="header">
             <span className="logo"></span>
-            <div className="user">{userInfo.name}</div>
+            <ChipSet>
+              <Chip className="user" id='user' label={`${userInfo.name} (${userInfo.rol})`}/>
+            </ChipSet>
             <div className="menu">
-                <div className="menu-item">
-                    <span className="icon"></span>
-                    <span className="title">Inicio</span>
-                </div>
-                <div className="menu-item">
-                    <span className="icon"></span>
-                    <span className="title">Gestion</span>
+                <Link to="/">
+                    <div className="menu-item">
+                        <Button outlined="true" raised="true">
+                          Inicio
+                        </Button>
+                    </div>
+                </Link>
+                <Link to="/management">
+                    <div className="menu-item">
+                        <Button outlined="true" raised="true">
+                          Gestión
+                        </Button>
+                    </div>
+                </Link>
+                <div className="menu-item" onClick={() => props.logout()}>
+                    <Button outlined="true" raised="true">
+                      Logout
+                    </Button>
                 </div>
             </div>
         </div>
@@ -25,8 +47,17 @@ const Header = (props) => {
 }
 
 export default connect(
+    // Que quiero mapear del estado como props¿?
+    // - props.userInfo (Sera leido del estado de redux store.login.userInfo)
+    // - props.isLoadingRestaurants (store.restaurtsList.loading)
     store => ({
         userInfo: store.login.userInfo,
+        isLoadingRestaurants : store.restaurantsList.loading
     }),
-    null
+
+    // Que quiero lanzar como accion ¿?
+    // - props.reduxLogout = dispatch(reduxLogout)
+    dispatch => ({
+        logout : () => dispatch(logout())
+    })
 )(Header);

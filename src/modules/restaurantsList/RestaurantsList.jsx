@@ -1,66 +1,93 @@
-
-import React, { useEffect, useMemo, useState } from 'react';
-import { connect } from 'react-redux';
-import Header from '../../components/header/Header';
+import React, { useEffect, useRef } from 'react';
 import { getMenus } from "./actions";
 import { RestaurantCard } from './components/restaurantCard/RestaurantCard';
 import "./restaurantsList.css";
+import { connect } from 'react-redux';
+import Lottie from 'react-lottie';
+import animationData from './restaurant-loading.json';
+import { FaBeer } from 'react-icons/fa';
+import BaseLayout from '../../components/baseLayout/BaseLayout';
+import { useTranslation } from 'react-i18next';
 
-// En cada carga traer paginas de x tamaño y al estar cerca del final traer la siguiente pagina
+const ITEMS_PER_PAGE = 20;
 
 const RestaurantsList = (props) => {
 
   const {
-    userInfo,
-    loadMenus
+    loadMenus,
+    menus,
+    loading
   } = props;
 
-  const [loading, setLoading] = useState(true);
-  const [reload, setReload] = useState(false);
-  const [count, setCount] = useState(0);
-  const [menus, setMenus] = useState([]);
+  const restaurantsRef = useRef();
+
+  const { t } = useTranslation('common');
 
   useEffect(() => {
-    loadMenus(0, 20);
-  }, [menus]);
-
-  useEffect(() => {
-    if (reload) {
-      loadMenus(0, 20);
-    }
-  }, [reload]);
+    loadMenus(0, ITEMS_PER_PAGE);
+  });
 
   const Items = React.memo(() => <>
-    {menus.map(menuItem =>
+    {menus.items.map(menuItem =>
       <RestaurantCard restaurant={menuItem} key={menuItem.id} />
     )}
   </>, [menus]);
 
+  if (restaurantsRef.current) {
+    restaurantsRef.current.onscroll = () => {
+      const heightToScroll = restaurantsRef.current.scrollHeight - (restaurantsRef.current.offsetHeight + restaurantsRef.current.scrollTop);
+
+      if (heightToScroll < restaurantsRef.current.offsetHeight) {
+
+        loadMenus((menus.currentPage + 1) * ITEMS_PER_PAGE, ITEMS_PER_PAGE);
+        console.log("Load next page", (menus.currentPage + 1));
+      }
+    }
+  }
+
+  const defaultOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: animationData
+  };
+
+
   return (
-    <>
-      <Header />
-      <div>{`Hola ${userInfo ? userInfo.name : ''}`}</div>
-      <div>
-        {count}
-        <button onClick={() => setCount(count + 1)}>Add count</button>
-      </div>
-      <button onClick={() => setReload(true)}>Reload</button>
-      <div className="restaurants">
-        {loading &&
-          <div className="loading">Cargando</div>
+    <BaseLayout>
+      <>
+        {loading && menus.items.length > 0 &&
+          <div className="loading-small">
+            <FaBeer />
+          </div>
         }
-        {!loading && <Items />}
-      </div>
-    </>
+        <div className="restaurants" ref={restaurantsRef}>
+          {loading && menus.items.length === 0 &&
+            <div className="restaurants__loading">
+              <div className="loading-icon">
+                <Lottie options={defaultOptions}
+                  height={150}
+                  width={150} />
+              </div>
+              <div className="loading-title">{t("loading", {
+                name : 'Restaurantes'
+              })}</div>
+            </div>
+          }
+          <div className="list">
+            <Items />
+          </div>
+        </div>
+      </>
+    </BaseLayout>
   );
 };
 
 export default connect(
   store => ({
-      loading: store.restaurantsList.loading,
-      menus : store.restaurantsList.menus
+    loading: store.restaurantsList.loading,
+    menus: store.restaurantsList.menus
   }),
   dispatch => ({
-    loadMenus : (start, count) => dispatch(getMenus(start, count))
+    loadMenus: (start, count) => dispatch(getMenus(start, count))
   })
 )(RestaurantsList);

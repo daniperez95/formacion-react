@@ -1,4 +1,5 @@
 import {
+  LOGOUT,
     USER_LOGIN_REQUEST,
     USER_LOGIN_RESPONSE
   } from './actions';
@@ -22,6 +23,11 @@ import {
             loading : false,
             userInfo : action.userInfo
           };
+      case LOGOUT:
+        return {
+          ...state, 
+          userInfo : initialState.userInfo
+        };
       default:
         return state;
     }
